@@ -106,7 +106,7 @@ class Platform(pygame.sprite.Sprite):
         if self.rect.top > screen_height:
             self.kill()    
 #player instance
-player = player(screen_width //2 - 50,screen_height-100)
+player = player(screen_width //2,screen_height-150)
 #sprite
 platform_group = pygame.sprite.Group()
 #creating starting platform
@@ -150,12 +150,10 @@ while run:
             game_over = False
             score = 0
             scroll = 0
-            platform.rect.center = (screen_width //2 - 50,screen_height-50)
+            player.rect.center = (screen_width //2,screen_height-150)
             platform_group.empty()
             platform = Platform(screen_width //2 - 50,screen_height-50, 100)
             platform_group.add(platform)
-    
-    
     #event handler
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
