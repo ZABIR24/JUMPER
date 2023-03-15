@@ -17,10 +17,22 @@ gravity = 1
 max_platform = 10
 scroll = 0
 bg_scroll = 0
+game_over = False
+score = 0
+font_small = pygame.font.SysFont('lucida Sans', 20)
+font_large = pygame.font.SysFont('lucida Sans', 24)
+
 #load imgs
 character = pygame.image.load('img/palyer1.png')
 bg = pygame.image.load('img/bj.png').convert_alpha()
 platform_img = pygame.image.load('img/platform.png').convert_alpha()
+
+def draw_text(text,font,text_col,x,y):
+    img = font.render(text,True,text_col)
+    screen.blit(img,(x,y))
+
+
+
 #infinite moving background
 def draw_bg (bg_scroll):
     screen.blit(bg, (0,0 + bg_scroll))
@@ -63,9 +75,9 @@ class player():
                         self.rect.bottom = platform.rect.top
                         dy = 0
                         self.vel_y = -20                
-        if self.rect.bottom + dy > screen_height:
-            dy = 0
-            self.vel_y = -20
+ #       if self.rect.bottom + dy > screen_height:
+ #          dy = 0
+ #           self.vel_y = -20
         #jumping
         if self.rect.top <= scroller:
            if self.vel_y < 0:
@@ -77,7 +89,7 @@ class player():
         return scroll
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), (self.rect.x ,self.rect.y)) 
-        pygame.draw.rect(screen, (255,255,255), self.rect,2)
+        #pygame.draw.rect(screen, (255,255,255), self.rect,2)
 #platform
 class Platform(pygame.sprite.Sprite):
     def __init__(self, x, y, width):
@@ -94,36 +106,56 @@ class Platform(pygame.sprite.Sprite):
         if self.rect.top > screen_height:
             self.kill()    
 #player instance
-player = player(200,10)
+player = player(screen_width //2 - 50,screen_height-100)
 #sprite
 platform_group = pygame.sprite.Group()
 #creating starting platform
 platform = Platform(screen_width //2 - 50,screen_height-50, 100)
+
 platform_group.add(platform)
 #game loop
 run = True
 while run:
     
     clock.tick(fps)
+    if game_over == False:
+        scroll = player.move()    
+        #draw background
+        bg_scroll += scroll
+        if bg_scroll >= 600 :
+            bg_scroll = 0
+        draw_bg(bg_scroll)
+        
+        if len(platform_group) < max_platform:
+            p_w = random.randint(40, 60)
+            p_x = random.randint(0,screen_width - p_w)
+            p_y = platform.rect.y - random.randint(80, 120)
+            platform = Platform(p_x,p_y,p_w)
+            platform_group.add(platform)
 
-    scroll = player.move()    
-    #draw background
-    bg_scroll += scroll
-    if bg_scroll >= 600 :
-        bg_scroll = 0
-    draw_bg(bg_scroll)
+        platform_group.update(scroll)
     
-    if len(platform_group) < max_platform:
-        p_w = random.randint(40, 60)
-        p_x = random.randint(0,screen_width - p_w)
-        p_y = platform.rect.y - random.randint(80, 120)
-        platform = Platform(p_x,p_y,p_w)
-        platform_group.add(platform)
-
-    platform_group.update(scroll)
-  
-    platform_group.draw(screen)
-    player.draw()
+        platform_group.draw(screen)
+        
+        player.draw()
+        
+        if player.rect.top > screen_height:
+            game_over = True
+    else:
+        draw_text('GAME OVER!!', font_large,(255,255,255), 115, 200)
+        draw_text('SCORE : ' + str(score),font_large,(255,255,255),130,250)
+        draw_text('PRESS space to start again!!', font_large, (255,255,255), 40, 300)
+        key = pygame.key.get_pressed()
+        if key[pygame.K_SPACE]:
+            game_over = False
+            score = 0
+            scroll = 0
+            platform.rect.center = (screen_width //2 - 50,screen_height-50)
+            platform_group.empty()
+            platform = Platform(screen_width //2 - 50,screen_height-50, 100)
+            platform_group.add(platform)
+    
+    
     #event handler
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
